@@ -22,12 +22,11 @@ namespace DotnettyHttpClient
         //{
         //    base.ChannelRead(context, message);
         //}
-
+        public string Data { get; set; }
         protected override void ChannelRead0(IChannelHandlerContext ctx, IFullHttpResponse msg)
         {
             IByteBuffer byteBuf = msg.Content;
-            var deat = byteBuf.ToString(Encoding.UTF8);
-            Console.WriteLine("结果:{0}", deat);
+            Data = byteBuf.ToString(Encoding.UTF8);
         }
     }
 }

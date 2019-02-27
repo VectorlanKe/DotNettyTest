@@ -16,6 +16,7 @@ namespace DotnettyHttpClient
         static void Main(string[] args)=> RunClientAsync().Wait();
         private static async Task RunClientAsync()
         {
+            HttpClientHandler httpClientHandler = new HttpClientHandler();
             IEventLoopGroup group = new DispatcherEventLoopGroup();
             try
             {
@@ -30,7 +31,7 @@ namespace DotnettyHttpClient
                         pipeline.AddLast("aggregator", new HttpObjectAggregator(1024));
                         pipeline.AddLast("encoder", new HttpRequestEncoder());
                         pipeline.AddLast("deflater", new HttpContentDecompressor());//解压
-                        pipeline.AddLast("handler", new HttpClientHandler());
+                        pipeline.AddLast("handler", httpClientHandler);
                     }));
 
                 Stopwatch stopwatch = new Stopwatch();
@@ -45,6 +46,7 @@ namespace DotnettyHttpClient
 
                     try
                     {
+                        httpClientHandler = new HttpClientHandler();
                         Uri uri = new Uri(url);
                         stopwatch.Reset();
                         stopwatch.Start();
@@ -55,6 +57,14 @@ namespace DotnettyHttpClient
                         headers.Set(HttpHeaderNames.Host, uri.Authority);
 
                         chanel.WriteAndFlushAsync(request).Wait();
+                        while (true)
+                        {
+                            if (httpClientHandler.Data != null)
+                            {
+                                Console.WriteLine("结果:{0}", httpClientHandler.Data);
+                                break;
+                            }
+                        }
                         stopwatch.Stop();
                         Console.WriteLine("耗时:{0}ms", stopwatch.ElapsedMilliseconds);
                         //await chanel.CloseAsync();
