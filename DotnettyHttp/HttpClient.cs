@@ -30,11 +30,11 @@ namespace DotnettyHttp
             bootstrap = new Bootstrap()
                 .Group(group)
                 .Channel<TcpChannel>()
-                .Option(ChannelOption.SoBacklog,1)
+                .Option(ChannelOption.SoBacklog, 8192)
                 .Handler(new ActionChannelInitializer<IChannel>(channel =>
                 {
                     IChannelPipeline pipeline = channel.Pipeline;
-                    pipeline.AddLast("decoder", new HttpResponseDecoder());//4096, 8192, 8192, false
+                    pipeline.AddLast("decoder", new HttpResponseDecoder(4096, 8192, 8192, false));
                     pipeline.AddLast("aggregator", new HttpObjectAggregator(1024));
                     pipeline.AddLast("encoder", new HttpRequestEncoder());
                     pipeline.AddLast("deflater", new HttpContentDecompressor());//解压
@@ -57,30 +57,36 @@ namespace DotnettyHttp
             return httpClient;
         }
 
-        public async Task<IByteBuffer> GetChannelRead(DefaultFullHttpRequest request)
+        public async Task<IFullHttpResponse> GetChannelRead(DefaultFullHttpRequest request)
         {
             return await Task.Run(()=> {
-                Uri uri = new Uri(request.Uri);
-                IChannel chanel = httpClient.bootstrap.ConnectAsync(IPAddress.Parse(uri.Host), uri.Port).Result;
-                //DefaultFullHttpRequest request = new DefaultFullHttpRequest(DotNetty.Codecs.Http.HttpVersion.Http11, HttpMethod.Get, uri.ToString());
-                HttpHeaders headers = request.Headers;
-                headers.Set(HttpHeaderNames.Host, uri.Authority);
-                chanel.WriteAndFlushAsync(request).Wait();
-                Stopwatch stopwatch = new Stopwatch();
-                IByteBuffer retubf=null;
-                //IFullHttpResponse resopnData =null;
-                stopwatch.Start();
-                while (stopwatch.ElapsedMilliseconds< timeSpan.TotalMilliseconds)
+                IFullHttpResponse resopnData = null;
+                try
                 {
-                    if (httpClient.httpClientHandler.responData != null)
+                    Uri uri = new Uri(request.Uri);
+                    IChannel chanel = httpClient.bootstrap.ConnectAsync(IPAddress.Parse(uri.Host), uri.Port).Result;
+                    //DefaultFullHttpRequest request = new DefaultFullHttpRequest(DotNetty.Codecs.Http.HttpVersion.Http11, HttpMethod.Get, uri.ToString());
+                    HttpHeaders headers = request.Headers;
+                    headers.Set(HttpHeaderNames.Host, uri.Authority);
+                    chanel.WriteAndFlushAsync(request).Wait();
+                    //IByteBuffer retubf=null;
+                    Stopwatch stopwatch = new Stopwatch();
+                    stopwatch.Start();
+                    while (stopwatch.ElapsedMilliseconds < timeSpan.TotalMilliseconds)
                     {
-                        retubf = httpClient.httpClientHandler.responData.Content.Copy();
-                        break;
+                        if (httpClient.httpClientHandler.responData != null)
+                        {
+                            resopnData = (IFullHttpResponse)httpClient.httpClientHandler.responData.Copy();
+                            break;
+                        }
                     }
+                    stopwatch.Stop();
                 }
-                httpClient.httpClientHandler = new HttpClientHandler();
-                stopwatch.Stop();
-                return retubf;
+                finally
+                {
+                    httpClient.httpClientHandler = new HttpClientHandler();
+                }
+                return resopnData;
             });
         }
         public void Dispose()
