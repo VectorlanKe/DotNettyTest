@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace WebApi
+namespace WebAapiTest
 {
     public class Program
     {
@@ -22,5 +22,4 @@ namespace WebApi
                 .UseUrls(Startup.uri.ToString())
                 .UseStartup<Startup>();
     }
-
 }

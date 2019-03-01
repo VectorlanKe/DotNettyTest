@@ -1,26 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
+using System.Reflection;
 using System.Threading.Tasks;
 using dotnet_etcd;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Reflection;
-using Microsoft.AspNetCore.Routing;
 
-namespace WebApi
+namespace WebAapiTest
 {
     public class Startup
     {
-        public static Uri uri = new Uri("http://127.0.0.1:5000");
+        public static Uri uri = new Uri("http://127.0.0.1:5001");
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -35,7 +31,7 @@ namespace WebApi
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationLifetime lifetime)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env,IApplicationLifetime lifetime)
         {
             if (env.IsDevelopment())
             {

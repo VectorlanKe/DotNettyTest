@@ -1,4 +1,5 @@
-﻿using DotNetty.Codecs.Http;
+﻿using dotnet_etcd;
+using DotNetty.Codecs.Http;
 using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Libuv;
@@ -14,11 +15,16 @@ namespace DotnettyHttp
     {
         private IEventLoopGroup group, workGroup;
         private ServerBootstrap serverBootstrap;
-        public IChannel bootstrapChannel { get; private set; }
+        public IChannel BootstrapChannel { get; private set; }
+
         private static HttpServer httpServer;
         private static readonly object _readoLook = new object();
-        private HttpServer()
+
+        private EtcdClient etcdClient;
+
+        private HttpServer(string etcdHost, int etcdPort)
         {
+            etcdClient = new EtcdClient(etcdHost, etcdPort);
             var dispatcher = new DispatcherEventLoopGroup();
             group = dispatcher;
             workGroup = new WorkerEventLoopGroup(dispatcher);
@@ -33,14 +39,14 @@ namespace DotnettyHttp
                                 pipeline.AddLast("aggregator", new HttpObjectAggregator(1048576));
                                 pipeline.AddLast("deflater", new HttpContentCompressor());//压缩
                                 pipeline.AddLast("encoder", new HttpResponseEncoder());
-                                pipeline.AddLast("handler", new HttpServerHandler());
+                                pipeline.AddLast("handler", new HttpServerHandler(etcdClient));
                             }));
         }
         /// <summary>
         /// 初始化当前对象
         /// </summary>
         /// <returns></returns>
-        public static HttpServer InitializeCreate()
+        public static HttpServer InitializeCreate(string etcdHost, int etcdPort)
         {
             if (httpServer==null)
             {
@@ -48,7 +54,7 @@ namespace DotnettyHttp
                 {
                     if (httpServer == null)
                     {
-                        httpServer =new HttpServer();
+                        httpServer =new HttpServer(etcdHost, etcdPort);
                     }
                 }
             }
@@ -56,7 +62,7 @@ namespace DotnettyHttp
         }
         public HttpServer RunServerAsync(int inetPort)
         {
-            httpServer.bootstrapChannel = httpServer.serverBootstrap.BindAsync(IPAddress.IPv6Any, inetPort).Result;
+            httpServer.BootstrapChannel = httpServer.serverBootstrap.BindAsync(IPAddress.IPv6Any, inetPort).Result;
             return httpServer;
         }
         public void Dispose()
