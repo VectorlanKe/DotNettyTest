@@ -11,7 +11,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApi", "WebApi\WebApi.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotnettyHttp", "DotnettyHttp\DotnettyHttp.csproj", "{B84B79CB-4928-493C-9E5D-B009D02C2F6E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAapiTest", "WebAapiTest\WebAapiTest.csproj", "{9678CF6F-1CE1-44E3-92C2-AE2C4B684E33}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebAapiTest", "WebAapiTest\WebAapiTest.csproj", "{9678CF6F-1CE1-44E3-92C2-AE2C4B684E33}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotnettySocketServer", "DotnettySocketServer\DotnettySocketServer.csproj", "{EA7FF35B-D9E7-4D0D-BE78-384196E08541}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotnettyWebSocketServer", "DotnettyWebSocketServer\DotnettyWebSocketServer.csproj", "{824CAD6E-2505-4D50-AAD2-7AAC6F9D87A1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +43,14 @@ Global
 		{9678CF6F-1CE1-44E3-92C2-AE2C4B684E33}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9678CF6F-1CE1-44E3-92C2-AE2C4B684E33}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9678CF6F-1CE1-44E3-92C2-AE2C4B684E33}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA7FF35B-D9E7-4D0D-BE78-384196E08541}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA7FF35B-D9E7-4D0D-BE78-384196E08541}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA7FF35B-D9E7-4D0D-BE78-384196E08541}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA7FF35B-D9E7-4D0D-BE78-384196E08541}.Release|Any CPU.Build.0 = Release|Any CPU
+		{824CAD6E-2505-4D50-AAD2-7AAC6F9D87A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{824CAD6E-2505-4D50-AAD2-7AAC6F9D87A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{824CAD6E-2505-4D50-AAD2-7AAC6F9D87A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{824CAD6E-2505-4D50-AAD2-7AAC6F9D87A1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
