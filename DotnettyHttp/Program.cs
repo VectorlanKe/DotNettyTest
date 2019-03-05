@@ -9,7 +9,7 @@ namespace DotnettyHttp
     {
         static void Main(string[] args)
         {
-            HttpServer httpServer = HttpServer.InitializeCreate("127.0.0.1", 2379)
+            DotnettyServer httpServer = DotnettyServer.InitializeCreate("127.0.0.1", 2379)
                                     .RunServerAsync(5003);
             Console.WriteLine($"Httpd started. Listening on {httpServer.BootstrapChannel.LocalAddress}");
             Console.ReadLine();

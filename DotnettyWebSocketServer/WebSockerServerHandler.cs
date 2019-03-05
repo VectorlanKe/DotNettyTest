@@ -18,7 +18,6 @@ namespace DotnettyWebSocketServer
 {
     public class WebSockerServerHandler : SimpleChannelInboundHandler<object>
     {
-        //必须
         const string WebsocketPath = "/";
 
         WebSocketServerHandshaker handshaker;
