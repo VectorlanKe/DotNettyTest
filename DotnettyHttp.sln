@@ -13,9 +13,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotnettyHttp", "DotnettyHtt
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebAapiTest", "WebAapiTest\WebAapiTest.csproj", "{9678CF6F-1CE1-44E3-92C2-AE2C4B684E33}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotnettySocketServer", "DotnettySocketServer\DotnettySocketServer.csproj", "{EA7FF35B-D9E7-4D0D-BE78-384196E08541}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotnettySocketServer", "DotnettySocketServer\DotnettySocketServer.csproj", "{EA7FF35B-D9E7-4D0D-BE78-384196E08541}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotnettyWebSocketServer", "DotnettyWebSocketServer\DotnettyWebSocketServer.csproj", "{824CAD6E-2505-4D50-AAD2-7AAC6F9D87A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotnettyWebSocketServer", "DotnettyWebSocketServer\DotnettyWebSocketServer.csproj", "{824CAD6E-2505-4D50-AAD2-7AAC6F9D87A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotnettySocketClient", "DotnettySocketClient\DotnettySocketClient.csproj", "{7164B106-FA96-4511-AB7E-54C498ACBA00}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{824CAD6E-2505-4D50-AAD2-7AAC6F9D87A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{824CAD6E-2505-4D50-AAD2-7AAC6F9D87A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{824CAD6E-2505-4D50-AAD2-7AAC6F9D87A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7164B106-FA96-4511-AB7E-54C498ACBA00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7164B106-FA96-4511-AB7E-54C498ACBA00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7164B106-FA96-4511-AB7E-54C498ACBA00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7164B106-FA96-4511-AB7E-54C498ACBA00}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

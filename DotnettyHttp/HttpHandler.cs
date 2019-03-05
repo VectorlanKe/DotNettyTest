@@ -25,14 +25,6 @@ namespace DotnettyHttp
         private HttpClient httpClient;
         private EtcdClient etcdClient;
         private Random random = new Random();
-        /// <summary>
-        /// WebSocker握手路径
-        /// </summary>
-        private const string websocketPath = "/websocket";
-        private WebSocketServerHandshaker handshaker;
-        static volatile IChannelGroup group;
-
-        Type httpRequest = typeof(IFullHttpRequest);
 
         public HttpHandler(EtcdClient etcd)
         {
@@ -42,33 +34,11 @@ namespace DotnettyHttp
 
         public override void ChannelActive(IChannelHandlerContext contex)
         {
-            //IChannelGroup g = group;
-            //if (g == null)
-            //{
-            //    lock (this)
-            //    {
-            //        if (group == null)
-            //        {
-            //            g = group = new DefaultChannelGroup(contex.Executor);
-            //        }
-            //    }
-            //}
-
-            ////contex.WriteAndFlushAsync(string.Format("Welcome to {0} secure chat server!\n", Dns.GetHostName()));
-            //g.Add(contex.Channel);
             base.ChannelActive(contex);
         }
         protected override void ChannelRead0(IChannelHandlerContext ctx, IFullHttpRequest msg)
         {
             HandleHttpRequest(ctx, msg);
-            //if (requestsl is IFullHttpRequest request)
-            //{
-                
-            //}
-            //else if (requestsl is WebSocketFrame frame)
-            //{
-            //    HandleWebSocketFrame(ctx, frame);
-            //}
         }
         public override void ExceptionCaught(IChannelHandlerContext ctx, Exception e)
         {
@@ -78,15 +48,8 @@ namespace DotnettyHttp
 
         public override void ChannelReadComplete(IChannelHandlerContext context) => context.Flush();
 
-        #region Http
         private void HandleHttpRequest(IChannelHandlerContext ctx, IFullHttpRequest request)
         {
-            //如果是websocker
-            if (request.Uri == websocketPath)
-            {
-                WebSockerHandshake(ctx, request);
-                return;
-            }
             IFullHttpRequest fullHttp = (IFullHttpRequest)request.Copy();
             Task.Run(() =>
             {
@@ -109,6 +72,7 @@ namespace DotnettyHttp
                         new DefaultFullHttpResponse(HttpVersion.Http11, HttpResponseStatus.NotFound, Unpooled.Empty, false);
                     ctx.WriteAndFlushAsync(fullResponse);
                     stopwatch.Stop();
+                    
                     Console.WriteLine("请求{0} \r\n耗时：{1}ms\r\n\r\n", request.Uri, stopwatch.ElapsedMilliseconds);
                 }
                 finally
@@ -119,68 +83,6 @@ namespace DotnettyHttp
                 }
             });
         }
-        #endregion
-
-        #region WebSocker
-        /// <summary>
-        /// WebSocker握手
-        /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="request"></param>
-        private void WebSockerHandshake(IChannelHandlerContext ctx, IFullHttpRequest request)
-        {
-            //获取websocker路径
-            bool result = request.Headers.TryGet(HttpHeaderNames.Host, out ICharSequence value);
-            Debug.Assert(result, "Host header does not exist.");
-            string location = value.ToString() + websocketPath;
-            // Handshake 握手
-            var wsFactory = new WebSocketServerHandshakerFactory(
-                location, null, true, 5 * 1024 * 1024);
-            this.handshaker = wsFactory.NewHandshaker(request);
-            if (this.handshaker == null)
-            {
-                WebSocketServerHandshakerFactory.SendUnsupportedVersionResponse(ctx.Channel);
-            }
-            else
-            {
-                this.handshaker.HandshakeAsync(ctx.Channel, request);
-            }
-        }
-        /// <summary>
-        /// WebSocker状态
-        /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="frame"></param>
-        private void HandleWebSocketFrame(IChannelHandlerContext ctx, WebSocketFrame frame)
-        {
-            // Check for closing frame
-            if (frame is CloseWebSocketFrame)
-            {
-                this.handshaker.CloseAsync(ctx.Channel, (CloseWebSocketFrame)frame.Retain());
-                return;
-            }
-
-            if (frame is PingWebSocketFrame)
-            {
-                ctx.WriteAsync(new PongWebSocketFrame((IByteBuffer)frame.Content.Retain()));
-                return;
-            }
-
-            if (frame is TextWebSocketFrame)
-            {
-                // Echo the frame
-                ctx.WriteAsync(frame.Retain());
-                //group.WriteAndFlushAsync("hello");
-                return;
-            }
-
-            if (frame is BinaryWebSocketFrame)
-            {
-                // Echo the frame
-                ctx.WriteAsync(frame.Retain());
-            }
-        }
-        #endregion
 
     }
 }

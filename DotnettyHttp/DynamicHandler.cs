@@ -21,10 +21,14 @@ namespace DotnettyHttp
         {
             delimiter = delimiterBuff;
         }
-        public DynamicHandler(string etcdHost,int etcdPort, IByteBuffer delimiterBuff)
+        public DynamicHandler(EtcdClient etcd, IByteBuffer delimiterBuff)
             :this(delimiterBuff)
         {
-            etcdClient = new EtcdClient(etcdHost, etcdPort);
+            etcdClient = etcd;
+        }
+        public override void ChannelActive(IChannelHandlerContext contex)
+        {
+            base.ChannelActive(contex);
         }
         protected override void Decode(IChannelHandlerContext context, IByteBuffer input, List<object> output)
         {
@@ -37,6 +41,8 @@ namespace DotnettyHttp
             }
             else if (IndexOf(input, webSocketBuffer) > 0)
             {
+                context.Channel.Pipeline.AddLast(new HttpServerCodec());
+                context.Channel.Pipeline.AddLast(new HttpObjectAggregator(1048576));
                 context.Channel.Pipeline.AddLast(new WebSocketHandler());
             }
             else{
