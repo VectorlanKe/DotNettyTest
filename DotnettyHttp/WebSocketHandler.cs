@@ -29,7 +29,6 @@ namespace DotnettyHttp
         private WebSocketServerHandshaker handshaker;
         public override void ChannelActive(IChannelHandlerContext contex)
         {
-            base.ChannelActive(contex);
         }
         protected override void ChannelRead0(IChannelHandlerContext ctx, IByteBufferHolder msg)
         {
@@ -42,12 +41,6 @@ namespace DotnettyHttp
                 HandleWebSocketFrame(ctx, frame);
             }
         }
-        public override void ExceptionCaught(IChannelHandlerContext ctx, Exception e)
-        {
-            Console.WriteLine($"{nameof(HttpHandler)} {0}", e);
-            ctx.CloseAsync();
-        }
-        public override void ChannelReadComplete(IChannelHandlerContext context) => context.Flush();
 
         #region WebSocker
         /// <summary>

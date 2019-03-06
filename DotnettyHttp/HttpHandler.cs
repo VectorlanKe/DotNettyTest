@@ -34,20 +34,21 @@ namespace DotnettyHttp
 
         public override void ChannelActive(IChannelHandlerContext contex)
         {
-            base.ChannelActive(contex);
+            IAttribute<string> der = contex.GetAttribute(AttributeMapConstant.HttpAttriKey);
+            if (string.IsNullOrWhiteSpace(der.Get()))
+            {
+                der.SetIfAbsent($"会重置:{GetType().Name}");
+            }
+            var parentAtt = contex.Channel.Parent.GetAttribute(AttributeMapConstant.HttpAttriKey);
+            if (string.IsNullOrWhiteSpace(parentAtt.Get()))
+            {
+                parentAtt.SetIfAbsent($"不会重置:{GetType().Name}");
+            }
         }
         protected override void ChannelRead0(IChannelHandlerContext ctx, IFullHttpRequest msg)
         {
             HandleHttpRequest(ctx, msg);
         }
-        public override void ExceptionCaught(IChannelHandlerContext ctx, Exception e)
-        {
-            Console.WriteLine($"{nameof(HttpHandler)} {0}", e);
-            ctx.CloseAsync();
-        }
-
-        public override void ChannelReadComplete(IChannelHandlerContext context) => context.Flush();
-
         private void HandleHttpRequest(IChannelHandlerContext ctx, IFullHttpRequest request)
         {
             IFullHttpRequest fullHttp = (IFullHttpRequest)request.Copy();

@@ -44,13 +44,5 @@ namespace DotnettyHttp
         {
             ctx.WriteAndFlushAsync($"来自服务端的消息：{msg}&sup;");
         }
-        public override void ChannelReadComplete(IChannelHandlerContext ctx) => ctx.Flush();
-
-        public override void ExceptionCaught(IChannelHandlerContext ctx, Exception e)
-        {
-            Console.WriteLine("{0}", e.StackTrace);
-            ctx.CloseAsync();
-        }
-        public override bool IsSharable => true;
     }
 }

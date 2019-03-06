@@ -22,16 +22,22 @@ namespace DotnettyHttp
             delimiter = delimiterBuff;
         }
         public DynamicHandler(EtcdClient etcd, IByteBuffer delimiterBuff)
-            :this(delimiterBuff)
+            : this(delimiterBuff)
         {
             etcdClient = etcd;
         }
         public override void ChannelActive(IChannelHandlerContext contex)
         {
-            base.ChannelActive(contex);
+            //var der = contex.GetAttribute(AttributeMapConstant.HttpAttriKey);
+            //if (string.IsNullOrWhiteSpace(der.Get()))
+            //{
+            //    der.SetIfAbsent($"私有1:{GetType().Name}");
+            //}
+            //Console.WriteLine(der.Get());
+            //base.ChannelActive(contex);
         }
         protected override void Decode(IChannelHandlerContext context, IByteBuffer input, List<object> output)
-        {
+         {
             if (IndexOf(input, delimiter) > 0)
             {
                 context.Channel.Pipeline.AddLast(new DelimiterBasedFrameDecoder(1048576, delimiter));
@@ -45,43 +51,51 @@ namespace DotnettyHttp
                 context.Channel.Pipeline.AddLast(new HttpObjectAggregator(1048576));
                 context.Channel.Pipeline.AddLast(new WebSocketHandler());
             }
-            else{
+            else
+            {
                 context.Channel.Pipeline.AddLast(new HttpServerCodec());
                 context.Channel.Pipeline.AddLast(new HttpObjectAggregator(1048576));
                 context.Channel.Pipeline.AddLast(new HttpHandler(etcdClient));
             }
             //output.Add(input);
+            context.FireChannelActive();
             context.Channel.Pipeline.Remove(this);
         }
-        static int IndexOf(IByteBuffer haystack, IByteBuffer needle)
-{
-    for (int i = haystack.ReaderIndex; i < haystack.WriterIndex; i++)
-    {
-        int haystackIndex = i;
-        int needleIndex;
-        for (needleIndex = 0; needleIndex < needle.Capacity; needleIndex++)
+        public override void ExceptionCaught(IChannelHandlerContext ctx, Exception e)
         {
-            if (haystack.GetByte(haystackIndex) != needle.GetByte(needleIndex))
+            Console.WriteLine($"{nameof(HttpHandler)} {0}", e);
+            ctx.CloseAsync();
+        }
+        public override void ChannelReadComplete(IChannelHandlerContext context) => context.Flush();
+        static int IndexOf(IByteBuffer haystack, IByteBuffer needle)
+        {
+            for (int i = haystack.ReaderIndex; i < haystack.WriterIndex; i++)
             {
-                break;
-            }
-            else
-            {
-                haystackIndex++;
-                if (haystackIndex == haystack.WriterIndex && needleIndex != needle.Capacity - 1)
+                int haystackIndex = i;
+                int needleIndex;
+                for (needleIndex = 0; needleIndex < needle.Capacity; needleIndex++)
                 {
-                    return -1;
+                    if (haystack.GetByte(haystackIndex) != needle.GetByte(needleIndex))
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        haystackIndex++;
+                        if (haystackIndex == haystack.WriterIndex && needleIndex != needle.Capacity - 1)
+                        {
+                            return -1;
+                        }
+                    }
+                }
+
+                if (needleIndex == needle.Capacity)
+                {
+                    // Found the needle from the haystack!
+                    return i - haystack.ReaderIndex;
                 }
             }
+            return -1;
         }
-
-        if (needleIndex == needle.Capacity)
-        {
-            // Found the needle from the haystack!
-            return i - haystack.ReaderIndex;
-        }
-    }
-    return -1;
-}
     }
 }

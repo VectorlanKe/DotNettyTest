@@ -30,7 +30,7 @@ namespace DotnettyHttp
         private DotnettyServer(string etcdHost, int etcdPort)
         {
             EtcdClient etcdClient = new EtcdClient(etcdHost, etcdPort);
-            InternalLoggerFactory.DefaultFactory.AddProvider(new ConsoleLoggerProvider((s, level) => true, false));
+            InternalLoggerFactory.DefaultFactory.AddProvider(new ConsoleLoggerProvider((s, level) => level==Microsoft.Extensions.Logging.LogLevel.Information, false));
             var dispatcher = new DispatcherEventLoopGroup();
             group = dispatcher;
             workGroup = new WorkerEventLoopGroup(dispatcher);
@@ -39,7 +39,7 @@ namespace DotnettyHttp
                             .Channel<TcpServerChannel>()//TcpServerSocketChannel
                             .Option(ChannelOption.SoBacklog, 8192)
                             .Handler(new LoggingHandler(LogLevel.INFO))
-                            .ChildHandler(new ActionChannelInitializer<IChannel>(channel =>
+                            .ChildHandler(new ActionChannelInitializer<IChannel>(channel =>//ActionChannelInitializer
                             {
                                 IChannelPipeline pipeline = channel.Pipeline;
 
@@ -49,7 +49,7 @@ namespace DotnettyHttp
                                 //    Unpooled.WrappedBuffer(new[] { (byte)'\n' }),
                                 //}));
                                 pipeline.AddLast(new DynamicHandler(etcdClient, Unpooled.WrappedBuffer(Encoding.UTF8.GetBytes("&sup;"))));
-                               
+                                //pipeline.AddLast(new TestHandler());
                                 ////pipeline.AddLast(new HttpRequestDecoder(4096, 8192, 8192, false));
                                 //pipeline.AddLast(new HttpResponseEncoder());
                                 //pipeline.AddLast(new StringEncoder());
