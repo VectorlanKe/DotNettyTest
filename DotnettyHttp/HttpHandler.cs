@@ -39,7 +39,7 @@ namespace DotnettyHttp
             {
                 der.SetIfAbsent($"会重置:{GetType().Name}");
             }
-            var parentAtt = contex.Channel.Parent.GetAttribute(AttributeMapConstant.HttpAttriKey);
+            IAttribute<string> parentAtt = contex.Channel.Parent.GetAttribute(AttributeMapConstant.HttpAttriKey);
             if (string.IsNullOrWhiteSpace(parentAtt.Get()))
             {
                 parentAtt.SetIfAbsent($"不会重置:{GetType().Name}");

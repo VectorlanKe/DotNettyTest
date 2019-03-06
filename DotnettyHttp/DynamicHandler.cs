@@ -4,6 +4,7 @@ using DotNetty.Codecs;
 using DotNetty.Codecs.Http;
 using DotNetty.Common.Utilities;
 using DotNetty.Transport.Channels;
+using DotNetty.Transport.Channels.Groups;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -26,7 +27,7 @@ namespace DotnettyHttp
         {
             etcdClient = etcd;
         }
-        public override void ChannelActive(IChannelHandlerContext contex)
+        public override void ChannelActive(IChannelHandlerContext context)
         {
             //var der = contex.GetAttribute(AttributeMapConstant.HttpAttriKey);
             //if (string.IsNullOrWhiteSpace(der.Get()))
@@ -35,6 +36,24 @@ namespace DotnettyHttp
             //}
             //Console.WriteLine(der.Get());
             //base.ChannelActive(contex);
+            //IAttribute<IChannelGroup> parentAtt = contex.Channel.Parent.GetAttribute(AttributeMapConstant.SockerGroup);
+            //IChannelGroup g = parentAtt.Get();
+            //if (g == null)
+            //{
+            //    lock (this)
+            //    {
+            //        if (g == null)
+            //        {
+            //            var chennGroup = new DefaultChannelGroup(contex.Executor);
+            //            parentAtt.SetIfAbsent(chennGroup);
+            //            g = chennGroup;
+            //        }
+            //    }
+            //}
+            //contex.WriteAndFlushAsync(string.Format("Welcome to {0} secure chat server!{1}", System.Net.Dns.GetHostName(), "&sup;"));
+            //g.Add(contex.Channel);
+            var fr = context.Channel;
+            //context.FireChannelActive();
         }
         protected override void Decode(IChannelHandlerContext context, IByteBuffer input, List<object> output)
          {

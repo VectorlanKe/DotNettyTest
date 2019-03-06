@@ -29,6 +29,8 @@ namespace DotnettyHttp
         private WebSocketServerHandshaker handshaker;
         public override void ChannelActive(IChannelHandlerContext contex)
         {
+            IAttribute<string> der = contex.GetAttribute(AttributeMapConstant.HttpAttriKey);
+            IAttribute<string> parentAtt = contex.Channel.Parent.GetAttribute(AttributeMapConstant.HttpAttriKey);
         }
         protected override void ChannelRead0(IChannelHandlerContext ctx, IByteBufferHolder msg)
         {
