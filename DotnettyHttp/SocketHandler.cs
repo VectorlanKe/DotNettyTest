@@ -48,5 +48,15 @@ namespace DotnettyHttp
             ctx.WriteAndFlushAsync($"来自服务端的消息：{msg}&sup;");
             ctx.Channel.Parent.GetAttribute(AttributeMapConstant.SockerGroup).Get().WriteAndFlushAsync("附件一条统一广播&sup;");
         }
+
+        /// <summary>
+        /// 用户事件
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="evt"></param>
+        public override void UserEventTriggered(IChannelHandlerContext context, object evt)
+        {
+            base.UserEventTriggered(context, evt);
+        }
     }
 }

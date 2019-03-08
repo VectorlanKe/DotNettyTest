@@ -3,11 +3,14 @@ using DotNetty.Buffers;
 using DotNetty.Codecs;
 using DotNetty.Codecs.Http;
 using DotNetty.Common.Utilities;
+using DotNetty.Handlers.Timeout;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Groups;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace DotnettyHttp
 {
@@ -17,6 +20,7 @@ namespace DotnettyHttp
         private EtcdClient etcdClient;
         private IByteBuffer webSocketBuffer = Unpooled.WrappedBuffer(Encoding.UTF8.GetBytes("Upgrade: websocket"));
 
+        private static AcceptorIdleStateTrigger acceptorIdleStateTrigger = new AcceptorIdleStateTrigger();
 
         public DynamicHandler(IByteBuffer delimiterBuff)
         {
@@ -56,9 +60,11 @@ namespace DotnettyHttp
             //context.FireChannelActive();
         }
         protected override void Decode(IChannelHandlerContext context, IByteBuffer input, List<object> output)
-         {
+        {
             if (IndexOf(input, delimiter) > 0)
             {
+                context.Channel.Pipeline.AddLast(new IdleStateHandler(5, 5, 10));
+                context.Channel.Pipeline.AddLast(acceptorIdleStateTrigger);
                 context.Channel.Pipeline.AddLast(new DelimiterBasedFrameDecoder(1048576, delimiter));
                 context.Channel.Pipeline.AddLast(new StringEncoder());
                 context.Channel.Pipeline.AddLast(new StringDecoder());
