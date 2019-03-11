@@ -16,5 +16,9 @@ namespace DotnettyHttp
         /// socket连接数据
         /// </summary>
         public static readonly AttributeKey<IChannelGroup> SockerGroup = AttributeKey<IChannelGroup>.ValueOf("sockerGroup");
+        /// <summary>
+        /// websocket连接数据
+        /// </summary>
+        public static readonly AttributeKey<IChannelGroup> WebSockerGroup = AttributeKey<IChannelGroup>.ValueOf("webSockerGroup");
     }
 }

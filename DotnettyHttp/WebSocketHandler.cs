@@ -30,8 +30,29 @@ namespace DotnettyHttp
         public override void ChannelActive(IChannelHandlerContext contex)
         {
             IAttribute<string> der = contex.GetAttribute(AttributeMapConstant.HttpAttriKey);
-            IAttribute<string> parentAtt = contex.Channel.Parent.GetAttribute(AttributeMapConstant.HttpAttriKey);
+            IAttribute<IChannelGroup> parentAtt = contex.Channel.Parent.GetAttribute(AttributeMapConstant.WebSockerGroup);
+            IChannelGroup g = parentAtt.Get();
+            if (g == null)
+            {
+                lock (this)
+                {
+                    if (g == null)
+                    {
+                        var chennGroup = new DefaultChannelGroup(contex.Executor);
+                        g = chennGroup;
+                        parentAtt.SetIfAbsent(chennGroup);
+                    }
+                }
+            }
+            //contex.WriteAndFlushAsync(string.Format("Welcome to {0} secure chat server!", Dns.GetHostName()));
+            g.Add(contex.Channel);
         }
+        public override void ExceptionCaught(IChannelHandlerContext ctx, Exception e)
+        {
+            Console.WriteLine($"{nameof(HttpHandler)} {0}", e);
+            ctx.CloseAsync();
+        }
+        public override void ChannelReadComplete(IChannelHandlerContext context) => context.Flush();
         protected override void ChannelRead0(IChannelHandlerContext ctx, IByteBufferHolder msg)
         {
             if (msg is IFullHttpRequest request)
@@ -93,6 +114,7 @@ namespace DotnettyHttp
                 // Echo the frame
                 ctx.WriteAsync(frame.Retain());
                 //group.WriteAndFlushAsync("hello");
+                ctx.Channel.Parent.GetAttribute(AttributeMapConstant.WebSockerGroup).Get().WriteAsync(new TextWebSocketFrame("hello"));
                 return;
             }
 

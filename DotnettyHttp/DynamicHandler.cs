@@ -20,8 +20,6 @@ namespace DotnettyHttp
         private EtcdClient etcdClient;
         private IByteBuffer webSocketBuffer = Unpooled.WrappedBuffer(Encoding.UTF8.GetBytes("Upgrade: websocket"));
 
-        private static AcceptorIdleStateTrigger acceptorIdleStateTrigger = new AcceptorIdleStateTrigger();
-
         public DynamicHandler(IByteBuffer delimiterBuff)
         {
             delimiter = delimiterBuff;
@@ -64,23 +62,23 @@ namespace DotnettyHttp
             if (IndexOf(input, delimiter) > 0)
             {
                 context.Channel.Pipeline.AddLast(new IdleStateHandler(5, 5, 10));
-                context.Channel.Pipeline.AddLast(acceptorIdleStateTrigger);
                 context.Channel.Pipeline.AddLast(new DelimiterBasedFrameDecoder(1048576, delimiter));
                 context.Channel.Pipeline.AddLast(new StringEncoder());
                 context.Channel.Pipeline.AddLast(new StringDecoder());
                 context.Channel.Pipeline.AddLast(new SocketHandler());
             }
-            else if (IndexOf(input, webSocketBuffer) > 0)
-            {
-                context.Channel.Pipeline.AddLast(new HttpServerCodec());
-                context.Channel.Pipeline.AddLast(new HttpObjectAggregator(1048576));
-                context.Channel.Pipeline.AddLast(new WebSocketHandler());
-            }
             else
             {
                 context.Channel.Pipeline.AddLast(new HttpServerCodec());
                 context.Channel.Pipeline.AddLast(new HttpObjectAggregator(1048576));
-                context.Channel.Pipeline.AddLast(new HttpHandler(etcdClient));
+                if (IndexOf(input, webSocketBuffer) > 0)
+                {
+                    context.Channel.Pipeline.AddLast(new WebSocketHandler());
+                }
+                else
+                {
+                    context.Channel.Pipeline.AddLast(new HttpHandler(etcdClient));
+                }
             }
             //output.Add(input);
             context.FireChannelActive();

@@ -17,9 +17,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotnettySocketServer", "Dot
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotnettyWebSocketServer", "DotnettyWebSocketServer\DotnettyWebSocketServer.csproj", "{824CAD6E-2505-4D50-AAD2-7AAC6F9D87A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotnettySocketClient", "DotnettySocketClient\DotnettySocketClient.csproj", "{7164B106-FA96-4511-AB7E-54C498ACBA00}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotnettySocketClient", "DotnettySocketClient\DotnettySocketClient.csproj", "{7164B106-FA96-4511-AB7E-54C498ACBA00}"
 EndProject
 Global
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU

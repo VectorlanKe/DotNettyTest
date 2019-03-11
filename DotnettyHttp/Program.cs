@@ -11,7 +11,7 @@ namespace DotnettyHttp
         {
             DotnettyServer httpServer = DotnettyServer.InitializeCreate("127.0.0.1", 2379)
                                     .RunServerAsync(5003);
-            Console.WriteLine($"Httpd started. Listening on {httpServer.BootstrapChannel.LocalAddress}");
+            //Console.WriteLine($"Httpd started. Listening on {httpServer.BootstrapChannel.LocalAddress}");
             Console.ReadLine();
         }
     }

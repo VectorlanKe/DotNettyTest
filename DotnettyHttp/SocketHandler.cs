@@ -22,7 +22,8 @@ namespace DotnettyHttp
 {
     public sealed class SocketHandler : SimpleChannelInboundHandler<string>
     {
-        private static volatile IChannelGroup group;
+        private string delimiterStr = "&sup;";
+        //private static volatile IChannelGroup group;
         public override void ChannelActive(IChannelHandlerContext contex)
         {
             IAttribute<string> der = contex.GetAttribute(AttributeMapConstant.HttpAttriKey);
@@ -40,13 +41,19 @@ namespace DotnettyHttp
                     }
                 }
             }
-            contex.WriteAndFlushAsync(string.Format("Welcome to {0} secure chat server!{1}", Dns.GetHostName(),"&sup;"));
+            contex.WriteAndFlushAsync(string.Format("Welcome to {0} secure chat server!{1}", Dns.GetHostName(), delimiterStr));
             g.Add(contex.Channel);
         }
+        public override void ExceptionCaught(IChannelHandlerContext ctx, Exception e)
+        {
+            Console.WriteLine($"{nameof(HttpHandler)} {0}", e);
+            ctx.CloseAsync();
+        }
+        public override void ChannelReadComplete(IChannelHandlerContext context) => context.Flush();
         protected override void ChannelRead0(IChannelHandlerContext ctx, string msg)
         {
-            ctx.WriteAndFlushAsync($"来自服务端的消息：{msg}&sup;");
-            ctx.Channel.Parent.GetAttribute(AttributeMapConstant.SockerGroup).Get().WriteAndFlushAsync("附件一条统一广播&sup;");
+            ctx.WriteAndFlushAsync($"来自服务端的消息：{msg}{delimiterStr}");
+            //ctx.Channel.Parent.GetAttribute(AttributeMapConstant.SockerGroup).Get().WriteAndFlushAsync($"附件一条统一广播{delimiterStr}");
         }
 
         /// <summary>

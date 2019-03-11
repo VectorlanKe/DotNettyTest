@@ -45,6 +45,12 @@ namespace DotnettyHttp
                 parentAtt.SetIfAbsent($"不会重置:{GetType().Name}");
             }
         }
+        public override void ExceptionCaught(IChannelHandlerContext ctx, Exception e)
+        {
+            Console.WriteLine($"{nameof(HttpHandler)} {0}", e);
+            ctx.CloseAsync();
+        }
+        public override void ChannelReadComplete(IChannelHandlerContext context) => context.Flush();
         protected override void ChannelRead0(IChannelHandlerContext ctx, IFullHttpRequest msg)
         {
             HandleHttpRequest(ctx, msg);
