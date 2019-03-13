@@ -24,7 +24,7 @@ namespace DotnettyHttp
 
         private Random random = new Random();
 
-
+        private Dictionary<string, IChannel> httpChannel = new Dictionary<string, IChannel>();
         private static HttpClient httpClient;
         private static readonly object _readLook = new object();
 
@@ -61,48 +61,57 @@ namespace DotnettyHttp
             }
             return httpClient;
         }
-        public IChannel CreateChannel(string host, int port)
+        public async Task<IChannel> CreateChannelAsync(string host, int port)
         {
-            return httpClient.bootstrap.ConnectAsync(IPAddress.Parse(host), port).Result;
+            string key = $"{host}:{port}";
+            IChannel channel = httpClient.httpChannel.GetValueOrDefault(key);
+            if (channel==null)
+            {
+                channel = await httpClient.bootstrap.ConnectAsync(IPAddress.Parse(host), port);
+                httpClient.httpChannel.Add(key, channel);
+            }
+            return channel;
         }
-        public DefaultFullHttpResponse GetChannelRead(IFullHttpRequest request)
+        public async Task<DefaultFullHttpResponse> GetChannelReadAsync(IFullHttpRequest request)
         {
-            IFullHttpResponse responData = null;
-            try
-            {
-                string requerUrl = Regex.Split(request.Uri, "(/\\d+)|\\?").FirstOrDefault().ToLower();
-                var urls = DotnettyServer.EtcdClient.GetRangeVal($"{requerUrl}#")?.ToList();
-                if (urls?.Count > 0)
+            return await Task.Run(async()=> {
+                IFullHttpResponse responData = null;
+                try
                 {
-                    KeyValuePair<string, string> url = urls[random.Next(0, urls.Count)];
-                    Uri uri = new Uri(url.Value);
-                    DefaultFullHttpRequest forwardRequest = new DefaultFullHttpRequest(DotNetty.Codecs.Http.HttpVersion.Http11, request.Method, uri.ToString(), request.Content, request.Headers, request.Headers);
-                    IChannel chanel = httpClient.bootstrap.ConnectAsync(IPAddress.Parse(uri.Host), uri.Port).Result; //CreateChannel(uri.Host, uri.Port);
-                    HttpHeaders headers = forwardRequest.Headers;
-                    headers.Set(HttpHeaderNames.Host, uri.Authority);
-                    chanel.WriteAndFlushAsync(forwardRequest);
-                    //IByteBuffer retubf=null;
-                    HttpClientHandler httpClientHandler = chanel.Pipeline.Get<HttpClientHandler>();
-                    Stopwatch stopwatch = new Stopwatch();
-                    stopwatch.Start();
-                    while (stopwatch.ElapsedMilliseconds < timeSpan.TotalMilliseconds)
+                    string requerUrl = Regex.Split(request.Uri, "(/\\d+)|\\?").FirstOrDefault().ToLower();
+                    var urls = DotnettyServer.EtcdClient.GetRangeVal($"{requerUrl}#")?.ToList();
+                    if (urls?.Count > 0)
                     {
-                        if (httpClientHandler.responData != null)
+                        KeyValuePair<string, string> url = urls[random.Next(0, urls.Count)];
+                        Uri uri = new Uri(url.Value);
+                        DefaultFullHttpRequest forwardRequest = new DefaultFullHttpRequest(DotNetty.Codecs.Http.HttpVersion.Http11, request.Method, uri.ToString(), request.Content, request.Headers, request.Headers);
+                        IChannel chanel = await CreateChannelAsync(uri.Host, uri.Port);//httpClient.bootstrap.ConnectAsync(IPAddress.Parse(uri.Host), uri.Port).Result;
+                        HttpHeaders headers = forwardRequest.Headers;
+                        headers.Set(HttpHeaderNames.Host, uri.Authority);
+                        await chanel.WriteAndFlushAsync(forwardRequest);
+                        //IByteBuffer retubf=null;
+                        HttpClientHandler httpClientHandler = chanel.Pipeline.Get<HttpClientHandler>();
+                        Stopwatch stopwatch = new Stopwatch();
+                        stopwatch.Start();
+                        while (stopwatch.ElapsedMilliseconds < timeSpan.TotalMilliseconds)
                         {
-                            responData = (IFullHttpResponse)httpClientHandler.responData.Copy();
-                            break;
+                            if (httpClientHandler.responData != null)
+                            {
+                                responData = (IFullHttpResponse)httpClientHandler.responData.Copy();
+                                break;
+                            }
                         }
+                        stopwatch.Stop();
                     }
-                    stopwatch.Stop();
                 }
-            }
-            catch (Exception ex)
-            {
+                catch (Exception ex)
+                {
 
-            }
-            return responData != null ?
-                new DefaultFullHttpResponse(DotNetty.Codecs.Http.HttpVersion.Http11, responData.Status, responData.Content, responData.Headers, responData.Headers) :
-                new DefaultFullHttpResponse(DotNetty.Codecs.Http.HttpVersion.Http11, HttpResponseStatus.NotFound, Unpooled.Empty, false);
+                }
+                return responData != null ?
+                    new DefaultFullHttpResponse(DotNetty.Codecs.Http.HttpVersion.Http11, responData.Status, responData.Content, responData.Headers, responData.Headers) :
+                    new DefaultFullHttpResponse(DotNetty.Codecs.Http.HttpVersion.Http11, HttpResponseStatus.NotFound, Unpooled.Empty, false);
+            });
         }
         public void Dispose()
         {

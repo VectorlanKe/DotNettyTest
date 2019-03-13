@@ -43,22 +43,18 @@ namespace DotnettyHttp
         public override void ChannelReadComplete(IChannelHandlerContext context) => context.Flush();
         protected override void ChannelRead0(IChannelHandlerContext ctx, IFullHttpRequest msg)
         {
-            HandleHttpRequest(ctx, msg);
+            HandleHttpRequestAsync(ctx, msg);
         }
-        private  void HandleHttpRequest(IChannelHandlerContext ctx, IFullHttpRequest request)
+        private async Task HandleHttpRequestAsync(IChannelHandlerContext ctx, IFullHttpRequest request)
         {
             IFullHttpRequest fullHttp = (IFullHttpRequest)request.Copy();
-            try
+            await Task.Run(async () =>
             {
-                var data =HttpClient.InitializeCreate().GetChannelRead(fullHttp);
-                ctx.WriteAndFlushAsync(data);
-            }
-            finally
-            {
-                ctx.FireChannelRead(request);
-                ctx.FireChannelRead(fullHttp);
-                ctx.CloseAsync();
-            }
+                await ctx.WriteAndFlushAsync(await HttpClient.InitializeCreate().GetChannelReadAsync(fullHttp));
+                //ctx.FireChannelRead(request);
+                //ctx.FireChannelRead(fullHttp);
+                //await ctx.CloseAsync();
+            });
         }
 
     }
