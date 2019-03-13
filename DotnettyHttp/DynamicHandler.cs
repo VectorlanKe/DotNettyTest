@@ -17,17 +17,11 @@ namespace DotnettyHttp
     public class DynamicHandler : ByteToMessageDecoder
     {
         private IByteBuffer delimiter;
-        private EtcdClient etcdClient;
         private IByteBuffer webSocketBuffer = Unpooled.WrappedBuffer(Encoding.UTF8.GetBytes("Upgrade: websocket"));
 
         public DynamicHandler(IByteBuffer delimiterBuff)
         {
             delimiter = delimiterBuff;
-        }
-        public DynamicHandler(EtcdClient etcd, IByteBuffer delimiterBuff)
-            : this(delimiterBuff)
-        {
-            etcdClient = etcd;
         }
         public override void ChannelActive(IChannelHandlerContext context)
         {
@@ -65,7 +59,7 @@ namespace DotnettyHttp
                 context.Channel.Pipeline.AddLast(new DelimiterBasedFrameDecoder(1048576, delimiter));
                 context.Channel.Pipeline.AddLast(new StringEncoder());
                 context.Channel.Pipeline.AddLast(new StringDecoder());
-                context.Channel.Pipeline.AddLast(new SocketHandler());
+                context.Channel.Pipeline.AddLast(new TcpClientHandler());
             }
             else
             {
@@ -77,7 +71,7 @@ namespace DotnettyHttp
                 }
                 else
                 {
-                    context.Channel.Pipeline.AddLast(new HttpHandler(etcdClient));
+                    context.Channel.Pipeline.AddLast(new HttpHandler());
                 }
             }
             //output.Add(input);

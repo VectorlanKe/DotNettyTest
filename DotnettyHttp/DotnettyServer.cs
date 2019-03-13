@@ -23,13 +23,16 @@ namespace DotnettyHttp
         private ServerBootstrap serverBootstrap;
         public IChannel BootstrapChannel { get; private set; }
 
+        public static EtcdClient EtcdClient { get; private set; }
+
+
         private static DotnettyServer httpServer;
         private static readonly object _readoLook = new object();
 
 
         private DotnettyServer(string etcdHost, int etcdPort)
         {
-            EtcdClient etcdClient = new EtcdClient(etcdHost, etcdPort);
+            EtcdClient = new EtcdClient(etcdHost, etcdPort);
             InternalLoggerFactory.DefaultFactory.AddProvider(new ConsoleLoggerProvider((s, level) => level==Microsoft.Extensions.Logging.LogLevel.Information, false));
             var dispatcher = new DispatcherEventLoopGroup();
             group = dispatcher;
@@ -48,7 +51,7 @@ namespace DotnettyHttp
                                 //    Unpooled.WrappedBuffer(new[] { (byte)'\r', (byte)'\n' }),
                                 //    Unpooled.WrappedBuffer(new[] { (byte)'\n' }),
                                 //}));
-                                pipeline.AddLast(new DynamicHandler(etcdClient, Unpooled.WrappedBuffer(Encoding.UTF8.GetBytes("&sup;"))));
+                                pipeline.AddLast(new DynamicHandler(Unpooled.WrappedBuffer(Encoding.UTF8.GetBytes("&sup;"))));
                                 //pipeline.AddLast(new TestHandler());
                                 ////pipeline.AddLast(new HttpRequestDecoder(4096, 8192, 8192, false));
                                 //pipeline.AddLast(new HttpResponseEncoder());
@@ -78,14 +81,15 @@ namespace DotnettyHttp
             }
             return httpServer;
         }
-        public DotnettyServer RunServerAsync(int inetPort)
+        public DotnettyServer RunServer(int inetPort)
         {
             httpServer.BootstrapChannel = httpServer.serverBootstrap.BindAsync(IPAddress.IPv6Any, inetPort).Result;
             return httpServer;
         }
         public void Dispose()
         {
-            group.ShutdownGracefullyAsync().Wait();
+            workGroup.ShutdownGracefullyAsync();
+            group.ShutdownGracefullyAsync();
         }
     }
 }
