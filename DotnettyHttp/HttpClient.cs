@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -65,32 +66,35 @@ namespace DotnettyHttp
         {
             string key = $"{host}:{port}";
             IChannel channel = httpClient.httpChannel.GetValueOrDefault(key);
-            if (channel==null)
+            if (channel == null)
             {
                 channel = await httpClient.bootstrap.ConnectAsync(IPAddress.Parse(host), port);
                 httpClient.httpChannel.Add(key, channel);
             }
             return channel;
         }
-        public async Task<DefaultFullHttpResponse> GetChannelReadAsync(IFullHttpRequest request)
+        public Task<DefaultFullHttpResponse> GetChannelReadAsync(IFullHttpRequest request)
         {
-            return await Task.Run(async()=> {
+            request = (IFullHttpRequest)request.Copy();
+            return Task.Run(async () =>
+            {
                 IFullHttpResponse responData = null;
                 try
                 {
-                    string requerUrl = Regex.Split(request.Uri, "(/\\d+)|\\?").FirstOrDefault().ToLower();
+                    string[] urlStrs = Regex.Split(request.Uri, "(/\\d+)|\\?");
+                    string requerUrl = urlStrs.FirstOrDefault().ToLower();
                     var urls = DotnettyServer.EtcdClient.GetRangeVal($"{requerUrl}#")?.ToList();
                     if (urls?.Count > 0)
                     {
                         KeyValuePair<string, string> url = urls[random.Next(0, urls.Count)];
                         Uri uri = new Uri(url.Value);
-                        DefaultFullHttpRequest forwardRequest = new DefaultFullHttpRequest(DotNetty.Codecs.Http.HttpVersion.Http11, request.Method, uri.ToString(), request.Content, request.Headers, request.Headers);
-                        IChannel chanel = await CreateChannelAsync(uri.Host, uri.Port);//httpClient.bootstrap.ConnectAsync(IPAddress.Parse(uri.Host), uri.Port).Result;
+                        DefaultFullHttpRequest forwardRequest = new DefaultFullHttpRequest(DotNetty.Codecs.Http.HttpVersion.Http11, request.Method, $"{uri.ToString()}{urlStrs?[1]}", request.Content, request.Headers, request.Headers);
                         HttpHeaders headers = forwardRequest.Headers;
                         headers.Set(HttpHeaderNames.Host, uri.Authority);
-                        await chanel.WriteAndFlushAsync(forwardRequest);
-                        //IByteBuffer retubf=null;
+                        IChannel chanel = await CreateChannelAsync(uri.Host, uri.Port); //await httpClient.bootstrap.ConnectAsync(IPAddress.Parse(uri.Host), uri.Port);
                         HttpClientHandler httpClientHandler = chanel.Pipeline.Get<HttpClientHandler>();
+                        await chanel.WriteAndFlushAsync(forwardRequest).ConfigureAwait(false);
+                        //IByteBuffer retubf = null;
                         Stopwatch stopwatch = new Stopwatch();
                         stopwatch.Start();
                         while (stopwatch.ElapsedMilliseconds < timeSpan.TotalMilliseconds)
@@ -102,12 +106,14 @@ namespace DotnettyHttp
                             }
                         }
                         stopwatch.Stop();
+                        //chanel.CloseCompletion.Start();
                     }
                 }
                 catch (Exception ex)
                 {
-
+                    throw ex;
                 }
+                //return responData;
                 return responData != null ?
                     new DefaultFullHttpResponse(DotNetty.Codecs.Http.HttpVersion.Http11, responData.Status, responData.Content, responData.Headers, responData.Headers) :
                     new DefaultFullHttpResponse(DotNetty.Codecs.Http.HttpVersion.Http11, HttpResponseStatus.NotFound, Unpooled.Empty, false);

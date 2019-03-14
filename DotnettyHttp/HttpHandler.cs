@@ -20,7 +20,7 @@ using HttpVersion = DotNetty.Codecs.Http.HttpVersion;
 
 namespace DotnettyHttp
 {
-    public sealed class HttpHandler : SimpleChannelInboundHandler<IFullHttpRequest>
+    public sealed class HttpHandler : ChannelHandlerAdapter //SimpleChannelInboundHandler<IFullHttpRequest>
     {
         public override void ChannelActive(IChannelHandlerContext contex)
         {
@@ -37,25 +37,34 @@ namespace DotnettyHttp
         }
         public override void ExceptionCaught(IChannelHandlerContext ctx, Exception e)
         {
-            Console.WriteLine($"{nameof(HttpHandler)} {0}", e);
+            Console.WriteLine($"{nameof(HttpHandler)} {{0}}", e);
             ctx.CloseAsync();
         }
-        public override void ChannelReadComplete(IChannelHandlerContext context) => context.Flush();
-        protected override void ChannelRead0(IChannelHandlerContext ctx, IFullHttpRequest msg)
+        public override void ChannelReadComplete(IChannelHandlerContext context)
         {
-            HandleHttpRequestAsync(ctx, msg);
+            context.Flush();
         }
-        private async Task HandleHttpRequestAsync(IChannelHandlerContext ctx, IFullHttpRequest request)
+        public async override void ChannelRead(IChannelHandlerContext context, object message)
         {
-            IFullHttpRequest fullHttp = (IFullHttpRequest)request.Copy();
-            await Task.Run(async () =>
+            if (message is IFullHttpRequest httpRequest)
             {
-                await ctx.WriteAndFlushAsync(await HttpClient.InitializeCreate().GetChannelReadAsync(fullHttp));
-                //ctx.FireChannelRead(request);
-                //ctx.FireChannelRead(fullHttp);
-                //await ctx.CloseAsync();
-            });
+                var data = await HttpClient.InitializeCreate().GetChannelReadAsync(httpRequest);
+                await context.WriteAndFlushAsync(data);
+                ReferenceCountUtil.Release(httpRequest);
+            }
+            else
+            {
+                context.FireChannelRead(message);
+            }
         }
-
+        //protected async override void ChannelRead0(IChannelHandlerContext ctx, IFullHttpRequest msg)
+        //{
+        //    //IFullHttpRequest fullHttpRequest =(IFullHttpRequest)msg.Copy();
+        //    var data = await HttpClient.InitializeCreate().GetChannelReadAsync(msg);
+        //    await ctx.WriteAndFlushAsync(data);
+        //    ReferenceCountUtil.Release(msg);
+        //    //ctx.Flush();
+        //    //await ctx.CloseAsync();
+        //}
     }
 }
